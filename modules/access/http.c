@@ -102,6 +102,7 @@ struct access_sys_t
 
     char       *psz_mime;
     char       *psz_location;
+    char       *psz_initialURL;
     bool b_icecast;
 
     int        i_icy_meta;
@@ -150,6 +151,7 @@ static int Open( vlc_object_t *p_this )
     p_sys->psz_proxy_passbuf = NULL;
     p_sys->psz_mime = NULL;
     p_sys->b_icecast = false;
+    p_sys->psz_initialURL = NULL;
     p_sys->psz_location = NULL;
     p_sys->psz_user_agent = NULL;
     p_sys->psz_referrer = NULL;
@@ -320,11 +322,12 @@ connect:
     else
         vlc_credential_store( &credential, p_access );
 
-    if( ( p_sys->i_code == 301 || p_sys->i_code == 302 ||
-          p_sys->i_code == 303 || p_sys->i_code == 307 ) &&
-        p_sys->psz_location != NULL )
+    if( p_sys->psz_location != NULL )
     {
+        p_sys->psz_initialURL = p_access->psz_url;
+        msg_Dbg(p_access, "initialURL=%s", p_sys->psz_initialURL);
         p_access->psz_url = p_sys->psz_location;
+        msg_Dbg(p_access, "location=%s", p_sys->psz_location);
         p_sys->psz_location = NULL;
         ret = VLC_ACCESS_REDIRECT;
         goto disconnect;
@@ -352,6 +355,7 @@ error:
     free( p_sys->psz_proxy_passbuf );
     free( p_sys->psz_mime );
     free( p_sys->psz_location );
+    free( p_sys->psz_initialURL );
     free( p_sys->psz_user_agent );
     free( p_sys->psz_referrer );
     free( p_sys->psz_username );
@@ -374,6 +378,7 @@ static void Close( vlc_object_t *p_this )
 
     free( p_sys->psz_mime );
     free( p_sys->psz_location );
+    free( p_sys->psz_initialURL );
 
     free( p_sys->psz_icy_name );
     free( p_sys->psz_icy_genre );
@@ -622,6 +627,7 @@ static int Connect( stream_t *p_access )
 
     /* Clean info */
     free( p_sys->psz_location );
+    free( p_sys->psz_initialURL );
     free( p_sys->psz_mime );
 
     free( p_sys->psz_icy_genre );
@@ -631,6 +637,7 @@ static int Connect( stream_t *p_access )
     vlc_http_auth_Init( &p_sys->auth );
     vlc_http_auth_Init( &p_sys->proxy_auth );
     p_sys->psz_location = NULL;
+    p_sys->psz_initialURL = NULL;
     p_sys->psz_mime = NULL;
     p_sys->i_icy_meta = 0;
     p_sys->i_icy_offset = 0;
