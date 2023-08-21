@@ -203,7 +203,7 @@ bool vlc_http_file_can_seek(struct vlc_http_resource *res)
 
 int vlc_http_file_seek(struct vlc_http_resource *res, uintmax_t offset)
 {
-    if(res->initialHost != NULL) {
+    if(res && res->initialHost && res->initialPath && res->initialPort) {
         res->host = res->initialHost;
         res->port = res->initialPort;
         res->path = res->initialPath;

@@ -103,7 +103,7 @@ retry:
 
     int status = vlc_http_msg_get_status(resp);
     if(status == 302) {
-        if(res->initialHost == NULL) {
+        if(res && !res->initialHost && !res->initialPath && !res->initialPort) {
             res->initialHost = res->host;
             res->initialPath = res->path;
             res->initialPort = res->port;
@@ -183,6 +183,9 @@ static void vlc_http_res_deinit(struct vlc_http_resource *res)
     free(res->path);
     free(res->authority);
     free(res->host);
+    free(res->initialHost);
+    free(res->initialPort);
+    free(res->initialPath);
 
     if (res->response != NULL)
         vlc_http_msg_destroy(res->response);
