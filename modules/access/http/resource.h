@@ -56,6 +56,9 @@ struct vlc_http_resource
     char *password;
     char *agent;
     char *referrer;
+    char *initialHost;
+    unsigned initialPort;
+    char *initialPath;
 };
 
 int vlc_http_res_init(struct vlc_http_resource *,

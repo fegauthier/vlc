@@ -102,6 +102,35 @@ retry:
                              res->host, res->path);
 
     int status = vlc_http_msg_get_status(resp);
+    if(status == 302) {
+        if(res->initialHost == NULL) {
+            res->initialHost = res->host;
+            res->initialPath = res->path;
+            res->initialPort = res->port;
+        }
+        const char *redir = vlc_http_msg_get_header(resp, "Location");
+
+        vlc_url_t url;
+        vlc_UrlParse(&url, redir);
+        res->host = strdup(url.psz_host);
+        res->port = url.i_port;
+
+        const char *path = url.psz_path;
+        if (path == NULL)
+            path = "/";
+
+        if (url.psz_option != NULL)
+        {
+            if (asprintf(&res->path, "%s?%s", path, url.psz_option) == -1)
+                res->path = NULL;
+        }
+        else
+            res->path = strdup(path);
+
+        vlc_UrlClean(&url);
+        goto retry;
+    }
+
     if (status < 200 || status >= 599)
         goto fail;
 
